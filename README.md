@@ -1,0 +1,1 @@
+# Simple backtesting stratergy for moving average crossover
