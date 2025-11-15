@@ -22,6 +22,7 @@ def download_data():
 
 def generate_signals(df, short_window, long_window):
     """Create trading signals (e.g., moving average crossover)."""
+    
     pass
 
 def compute_returns(df):

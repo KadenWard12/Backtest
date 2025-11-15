@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 import os
 import yfinance as yf
-from utils import download_data
+from functions import download_data
 
 # List all .csv files
 files = [f for f in os.listdir('data') if f.endswith('.csv')]
