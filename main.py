@@ -24,6 +24,8 @@ while True:
                 ticker = input('Input existing ticker symbol: ').strip().upper()
                 if f'{ticker}.csv' in files:
                     print(f'Using data for {ticker}')
+                    for i in range(3):
+                        print('...')
                     break
                 else:
                     print('Ticker symbol not found in existing data.')
@@ -42,12 +44,12 @@ while True:
 # Choose a strategy to test
 strategies = inspect.getmembers(strats, inspect.isfunction)
 strategy_names = {name.lower(): func for name, func in strategies}
+
 # Check if stratergies are available
 if len(strategies) > 0:
-    print('Available strategies:')
+    print('Available strategies to test:')
     for name, func in strategies:
-        print(name)
-    
+        print(name)  
     while True:
         strat = input('Choose a strategy: ').strip().lower()
         # Check if chosen strat matches available
@@ -62,3 +64,45 @@ if len(strategies) > 0:
 else:
     print('No strategies found.')
     sys.exit()
+
+# Work out and display function inputs
+sig = inspect.signature(chosen_strat)
+if sig.parameters:
+    print(f'Function expects these parameters: {sig}')
+    
+df = pd.read_csv(f'data/{ticker}.csv')
+
+# Prompt for function inputs
+while True:
+    user_input = {'df': df}
+    for name, param in sig.parameters.items():
+        if name == "df":
+            continue
+
+        while True:
+            x = input(f'Choose a value for {name}: ')
+            # Make sure x is a int
+            if x.isdigit():
+                user_input[name] = int(x)
+                break
+            else:
+                print('Integer value required')
+
+    try:
+        # Call strategy with inputs
+        result_df = chosen_strat(**user_input)
+        break
+    # Catches any value error noted in strats.py
+    except ValueError as error:
+        for i in range(3):
+            print('...')
+        print(f'{error}, enter paraemters again')
+        print('...')
+
+# Compute returns
+#returns_df = compute_returns(results_df)
+
+result_df.to_csv("results.csv")
+
+# Closes script, allows graphs to stay open as script doesnt auto close
+functions.exit_script()

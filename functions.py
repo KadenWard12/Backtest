@@ -10,6 +10,8 @@ matplotlib.use('TkAgg')  # use this to plot graph as a popup
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import strats
+import sys
+
 
 
 # Download price data as .csv
@@ -22,6 +24,8 @@ def download_data():
             continue
         else:
             print(f'{ticker} data successfully stored')
+            for i in range(3):
+                print('...')
             df.reset_index(inplace=True)
             df.to_csv(f"data/{ticker}.csv", index=False)
             clean_csv(ticker)
@@ -41,3 +45,15 @@ def compute_returns(df):
 def backtest(df):
     """Combine signals and returns to simulate a trading strategy."""
     pass
+
+def exit_script():
+    print('Data analysis finished')
+
+    while True:
+        user_input = input("Press Enter to exit script...")
+
+        if user_input == "":
+            sys.exit()
+        else:
+            print('Invalid input, script not closed')
+

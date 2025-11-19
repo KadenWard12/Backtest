@@ -10,47 +10,34 @@ import strats
 import inspect
 import sys
 
+df = pd.read_csv('results.csv')
+"""
+Parameters:
+    - df: DataFrame with price and signal
+    - price_col: column name of price (default "Close")
+    - signal_col: column name of signals (default "Signal", 1=buy,0=flat)
 
-# Choose a strategy to test
-strategies = inspect.getmembers(strats, inspect.isfunction)
-strategy_names = {name.lower(): func for name, func in strategies}
-# Check if stratergies are available
-if len(strategies) > 0:
-    print('Available strategies:')
-    for name, func in strategies:
-        print(name)
-    
-    while True:
-        strat = input('Choose a strategy: ').strip().lower()
-        # Check if chosen strat matches available
-        if strat in strategy_names:
-            print(f'Using {strat} strategy')
-            for i in range(3):
-                print('...')
-            chosen_strat = strategy_names[strat]
-            break
-        else:
-            print('Strategy not found, try again.')
-else:
-    print('No strategies found.')
-    sys.exit()
+Returns:
+    - df: DataFrame with new columns:
+    - Return
+    - Strategy_Return
+    - Cumulative_Return
+    - Cumulative_Strategy
+    """
 
-# Work out and display function inputs
-sig = inspect.signature(chosen_strat)
-# Prompt for function inputs
-if sig.parameters:
-    print(f'Function expects these parameters: {sig}')
-    print(sig.parameters.items())
+#function
+if Signal not in df.columns:
+    raise ValueError('Signal column not found in DataFrame')
 
-user_input = {}
+# Calculates daily returns
+df['Return'] = (df['Close'] - df['Close'].shift(1)) / df['Close'].shift(1)
 
-for name, param in sig.parameters.items():
-    if name == "df":
-        continue
-    x= input(f'Choose a value for {name}: ')
-    user_input[name] = x
+# Multiplies by position to show what return the stratergy nets
+df['Strategy_Return'] = df['Return'] * df['Signal'].shift(1)
 
-print(user_input)
 
-# Call strategy with inputs
-#chosen_strat()
+
+
+
+
+
