@@ -108,6 +108,7 @@ while True:
 
 # Run a statistical simulation
 #sims.monte()
+result_df.to_csv(f"results.csv")
 
 # Closes script, allows graphs to stay open as script doesnt auto close
 functions.exit_script()
