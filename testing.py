@@ -26,7 +26,9 @@ def test(df):
         raise ValueError('Position column not found in DataFrame')
     """
     # Calculates daily returns of asset
-    df['Daily_pnl'] = (df['Close'] - df['Close'].shift(1)) / df['Close'].shift(1)
+    ##df['Daily_pnl'] = (df['Close'] - df['Close'].shift(1)) / df['Close'].shift(1)
+    # Calculate pip or point moves
+    
 
     # Calculates the times in which the strat enters, holds, and exits
     # PUT THIS IN THE STRAT FILE SO EACH STRAT HAS DIFFERENT POSITIONS, E.G SELLS

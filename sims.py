@@ -6,7 +6,7 @@ import numpy as np
 import os
 import yfinance as yf
 import matplotlib
-matplotlib.use('TkAgg')  # use this to plot graph as a popup
+matplotlib.use('Agg')  # use this to plot graph as a popup
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import strats
