@@ -23,7 +23,19 @@ def sma_cross(df, short_SMA, long_SMA):
     # Add signal column to DataFrame
     df['Short'] = df['Close'].rolling(window=short_SMA).mean() 
     df['Long'] = df['Close'].rolling(window=long_SMA).mean() 
-    df['Signal'] = np.where(df['Short'] > df['Long'], 1, 0)
+    df.loc[0, 'Signal'] = 0 # hold position
+
+    for i in range(1, len(df)):
+        if (df.loc[i-1, 'Short'] < df.loc[i-1, 'Long']) and (df.loc[i, 'Short'] > df.loc[i, 'Long']):
+            # Buy
+            df.loc[i, 'Signal'] = 1
+        elif (df.loc[i-1, 'Short'] > df.loc[i-1, 'Long']) and (df.loc[i, 'Short'] < df.loc[i, 'Long']):
+            # Sell
+            df.loc[i, 'Signal'] = -1
+        else:
+            # Hold position
+            df.loc[i, 'Signal'] = 0
+    
 
     # Run ATR
     functions.atr(df)

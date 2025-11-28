@@ -45,13 +45,11 @@ def atr(df, period=14):
     df['ATR'] = df['TR'].rolling(period).mean()
     return df
 
-def compute_returns(df):
-    """Calculate daily and cumulative returns."""
-    pass
-
 def backtest(df):
-    """Combine signals and returns to simulate a trading strategy."""
-    pass
+    if 'ATR' not in df:
+        atr(df)
+    
+    
 
 def exit_script():
     print('Data analysis finished')
