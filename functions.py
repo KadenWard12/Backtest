@@ -46,8 +46,7 @@ def atr(df, period=14):
     return df
 
 def backtest(df):
-    if 'ATR' not in df:
-        atr(df)
+    pass
     
     
 

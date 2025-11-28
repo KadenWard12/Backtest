@@ -58,11 +58,13 @@ def test(df):
 
     
     # Create empty trade df
-    trades = pd.DataFrame(columns=['Date', 'Time', 'Type', 'PnL'])
+    trades = pd.DataFrame(columns=['Date', 'Time', 'Closed', 'Type', 'PnL', 'SL Hit','Cumalative PnL', 'W/L', 'Total PnL'])
 
     dollar_pip = 0
     row_index = 0
     first_candle = True
+    buy = False
+    sell = False
     # Loop through each row of the dataframe
     for i in range(1, len(df)):
         # Set the distance moved by each candle
@@ -72,9 +74,13 @@ def test(df):
         if df.loc[i, 'Signal'] == 1:
             if not first_candle:
                 # PnL for each candle
-                df.loc[i, 'dollar_candle'] = dollar_pip * df.loc[i, 'candle_move']
+                df.loc[i, 'dollar_candle'] = dollar_pip * df.loc[i, 'candle_move'] * -1
                 # Sum of PnL for trade
                 trades.loc[row_index, 'PnL'] = trades.loc[row_index, 'PnL'] + df.loc[i, 'dollar_candle']
+                # Date trade closed
+                trades.loc[row_index, 'Closed'] = df.loc[i, 'Date']
+                # Stoploss not hit
+                trades.loc[row_index, 'SL Hit'] = False
                 # Reset trade
                 first_candle = True
                 row_index += 1
@@ -83,11 +89,13 @@ def test(df):
             stop = df.loc[i, 'Close'] - pips
             dollar_pip = (balance * (risk/100)) / pips
             # Append to trades dataframe
-            if 'Date' in df:
+            if 'Date' in df.columns:
                 trades.loc[row_index, 'Date'] = df.loc[i, 'Date']
-            if 'Time' in df:
+            if 'Time' in df.columns:
                 trades.loc[row_index, 'Time'] = df.loc[i, 'Time']
             trades.loc[row_index, 'Type'] = 'Buy'
+            sell = False
+            buy = True
 
         # Check for short
         elif df.loc[i, 'Signal'] == -1:
@@ -96,6 +104,10 @@ def test(df):
                 df.loc[i, 'dollar_candle'] = dollar_pip * df.loc[i, 'candle_move']
                 # Sum of PnL for trade
                 trades.loc[row_index, 'PnL'] = trades.loc[row_index, 'PnL'] + df.loc[i, 'dollar_candle']
+                # Date trade closed
+                trades.loc[row_index, 'Closed'] = df.loc[i, 'Date']
+                # Stoploss not hit
+                trades.loc[row_index, 'SL Hit'] = False
                 # Reset trade
                 first_candle = True
                 row_index += 1
@@ -104,52 +116,63 @@ def test(df):
             stop = df.loc[i, 'Close'] + pips
             dollar_pip = (balance * (risk/100)) / pips
             # Append to trades dataframe
-            if 'Date' in df:
+            if 'Date' in df.columns:
                 trades.loc[row_index, 'Date'] = df.loc[i, 'Date']
-            if 'Time' in df:
+            if 'Time' in df.columns:
                 trades.loc[row_index, 'Time'] = df.loc[i, 'Time']
             trades.loc[row_index, 'Type'] = 'Sell'
+            sell = True
+            buy = False
 
         # Check for hold
         elif df.loc[i, 'Signal'] == 0:
-            if first_candle:
+            if first_candle and (buy or sell):
                 trades.loc[row_index, 'PnL'] = 0
                 first_candle = False
-            # PnL for each candle
-            df.loc[i, 'dollar_candle'] = dollar_pip * df.loc[i, 'candle_move']
-            # Sum of PnL for trade
-            trades.loc[row_index, 'PnL'] = trades.loc[row_index, 'PnL'] + df.loc[i, 'dollar_candle']
+            if buy:
+                # PnL for each candle
+                df.loc[i, 'dollar_candle'] = dollar_pip * df.loc[i, 'candle_move']
+                # Sum of PnL for trade
+                trades.loc[row_index, 'PnL'] = trades.loc[row_index, 'PnL'] + df.loc[i, 'dollar_candle']
+            if sell:
+                # PnL for each candle
+                df.loc[i, 'dollar_candle'] = dollar_pip * df.loc[i, 'candle_move'] * -1
+                # Sum of PnL for trade
+                trades.loc[row_index, 'PnL'] = trades.loc[row_index, 'PnL'] + df.loc[i, 'dollar_candle']
 
+        # Check if stoploss has been hit
+        if buy:
+            if df.loc[i, 'Low'] <= stop:
+                trades.loc[row_index, 'PnL'] = pips * dollar_pip * -1
+                # Date trade closed
+                trades.loc[row_index, 'Closed'] = df.loc[i, 'Date']
+                # Stoploss not hit
+                trades.loc[row_index, 'SL Hit'] = True
+                # Reset trade
+                buy = False
+                first_candle = True
+                row_index += 1
+        if sell:
+            if df.loc[i, 'High'] >= stop:
+                trades.loc[row_index, 'PnL'] = pips * dollar_pip * -1
+                # Date trade closed
+                trades.loc[row_index, 'Closed'] = df.loc[i, 'Date']
+                # Stoploss not hit
+                trades.loc[row_index, 'SL Hit'] = True
+                # Reset trade
+                sell = False
+                first_candle = True
+                row_index += 1
 
+    # Last columns
+    trades.loc[0, 'Cumalative PnL'] = trades.loc[0, 'PnL']
+    for i in range(1, len(trades)):
+        trades.loc[i, 'Cumalative PnL'] = trades.loc[i-1, 'Cumalative PnL'] + trades.loc[i, 'PnL']
+    trades.loc[0, 'Total PnL'] = trades.iloc[-1]['Cumalative PnL']
+    trades.loc[0, 'W/L'] = (trades['PnL'] >= 0).sum() / len(trades)
 
-        # 5. Process entry (size position, set stop-loss)
-
-
-
-        # 6. Check for exit event (signal flips to sell)
-
-
-
-        # 7. Process signal-based exit (close trade)
-
-
-
-        # 8. Check for stop-loss hit
-
-
-
-        # 9. Process stop-loss exit
-
-
-
-        # 10. Record state for this row (equity, pnl, etc.)
-
-    
-
-    # 11. Return the full dataframe
     return df, trades
                 
-
 # Catch errors
 try:
     df, trades = test(df)
@@ -161,9 +184,13 @@ except ValueError as error:
 
 
 
-print(df.loc[100:300, ['Date', 'Signal']])
+print(df[['Date', 'Signal']])
+df[['Date', 'Signal']].to_csv('signal.csv')
 print(trades.head(50))
 
 """
-Having issues with setting the right row in the trades df
+plot equity curve
+sharpe ratio
+max drawdown
+anything else???
 """
