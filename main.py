@@ -72,21 +72,60 @@ else:
     
 df = pd.read_csv(f'data/{ticker}.csv')
 
+# Run strategy
 result_df = chosen_strat(df, ticker)
 
 # Backtest
 try:
     df, trades = functions.backtest(result_df, ticker)
     print(trades)
+    print('...')
 except ValueError as error:
     for i in range(3):
         print('...')
     print(f'{error}, different DataFrame needed')
     print('...')
 
-
 # Run a statistical simulation
-#sims.monte()
+simulations = inspect.getmembers(sims, inspect.isfunction)
+simulation_names = {name.lower(): func for name, func in simulations}
+sim_answer = False
+# yes or no for running sim, make bool flag
+while True:
+    if len(simulations) > 0:
+        x = input('Do you want to run a simulation [y/n]: ').strip().upper()
+        if x in ('Y', 'YES'):
+            sim_answer = True
+            break
+        elif x in ('N', 'NO'):
+            break
+        else:
+            print('Incorrect answer')
+            continue
 
-# Closes script, allows graphs to stay open as script doesnt auto close
+# Choose a simulation to test
+if sim_answer:
+    # Check if simulations are available
+    if len(simulations) > 0:
+        print('Available simulations to use:')
+        for name, func in simulations:
+            print(name)  
+        while True:
+            sim = input('Choose a simulation: ').strip().lower()
+            # Check if chosen sim matches available
+            if sim in simulation_names:
+                print(f'Using {sim} simulation')
+                for i in range(3):
+                    print('...')
+                chosen_sim = simulation_names[sim]
+                break
+            else:
+                print('Simulation not found, try again.')
+    else:
+        print('No simulations found.')
+        sys.exit()
+
+    chosen_sim(df, trades, chosen_strat)
+
+# Closes script
 functions.exit_script()

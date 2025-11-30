@@ -17,7 +17,7 @@ import functions
 - each strat should only input the initial df and ticker, so every other variable to be defined inside
 """
 
-# SMA crossover signal
+# SMA crossover 
 def sma_cross(df, ticker):
     # Define short and long SMA
     while True:

@@ -11,8 +11,11 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import strats
 
-def monte():
-    # Use input for different stratergies
+def monte(df, trades, chosen_strat):
+    # Check which strat has been chosen
+    if chosen_strat.__name__ == 'sma_cross':
+        print('SMA DETECTED')
         # SMA_Cross will use fixed LongMA, and a range of ShortMA
         # up to five LongMA inputs at a time to generate one graph with five plots on the same x axis
+
     pass
