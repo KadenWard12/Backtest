@@ -10,15 +10,30 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import functions
 
-# Ensure plot folder exists
-if not os.path.exists('plots'):
-    os.makedirs('plots')
+""" Make sure every strat includes:
+- strat_name (for file names will use '_' for spaces)
+- strat_title (for chart titles such as equity curves, will not use '_')
+- 'Signal' column in the dataframe that has values 1=long, 0=hold, -1=short
+- each strat should only input the initial df and ticker, so every other variable to be defined inside
+"""
 
 # SMA crossover signal
-def sma_cross(df, short_SMA, long_SMA):
-    # Makes sure short SMA < Long SMA
-    if short_SMA >= long_SMA:
-        raise ValueError('Long SMA must be > short SMA')
+def sma_cross(df, ticker):
+    # Define short and long SMA
+    while True:
+        try:    
+            short_SMA = int(input('Choose a value for short SMA: ').strip())
+            long_SMA = int(input('Choose a value for long SMA: ').strip())
+        except ValueError:
+            print('Invalid input, please enter an integer') 
+            continue
+        if short_SMA <= 0 or long_SMA <= 0:
+            print("Please enter integers greater than 0")
+            continue
+        if short_SMA >= long_SMA:
+            print("Long SMA must be greater than Short SMA")
+            continue
+        break
 
     # Add signal column to DataFrame
     df['Short'] = df['Close'].rolling(window=short_SMA).mean() 
@@ -36,8 +51,10 @@ def sma_cross(df, short_SMA, long_SMA):
             # Hold position
             df.loc[i, 'Signal'] = 0
     
-    strat_name = f'{short_SMA}_{long_SMA}_SMA_cross'
+    strat_name = f'{ticker}_{short_SMA}_{long_SMA}_SMA_cross'
     df.loc[0, 'name'] = strat_name
+    strat_title = f'{ticker} Moving Average Crossover: {short_SMA} SMA & {long_SMA} SMA'
+    df.loc[0, 'title'] = strat_title
 
     # Run ATR
     functions.atr(df)
@@ -56,7 +73,7 @@ def sma_cross(df, short_SMA, long_SMA):
     ax1.plot(df['Date'], df['Short'], label=f'{short_SMA} SMA')
     ax1.plot(df['Date'], df['Long'], label=f'{long_SMA} SMA')
 
-    ax1.set_title(f'Moving Average Crossover: {short_SMA} SMA & {long_SMA} SMA')
+    ax1.set_title(f'{strat_title}')
     ax1.set_xlabel('Date')
     ax1.set_ylabel('Price')
     ax1.legend()

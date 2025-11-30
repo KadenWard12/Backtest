@@ -15,6 +15,10 @@ import sims
 files = [f for f in os.listdir('data') if f.endswith('.csv')]
 print(f'Available ticker symbols: {files}')
 
+# Ensure plot folder exists
+if not os.path.exists('plots'):
+    os.makedirs('plots')
+
 # Prompt a file to be chosen
 while True:
     if len(files) > 0:
@@ -65,50 +69,24 @@ if len(strategies) > 0:
 else:
     print('No strategies found.')
     sys.exit()
-
-# Work out and display function inputs
-sig = inspect.signature(chosen_strat)
-if sig.parameters:
-    print(f'Function expects these parameters: {sig}')
     
 df = pd.read_csv(f'data/{ticker}.csv')
 
-# Prompt for function inputs
-while True:
-    user_input = {'df': df}
-    for name, param in sig.parameters.items():
-        if name == "df":
-            continue
-
-        while True:
-            x = input(f'Choose a value for {name}: ')
-            # Make sure x is a int
-            if x.isdigit():
-                user_input[name] = int(x)
-                break
-            else:
-                print('Integer value required')
-
-    try:
-        # Call strategy with inputs
-        result_df = chosen_strat(**user_input)
-        break
-    # Catches any value error noted in strats.py
-    except ValueError as error:
-        for i in range(3):
-            print('...')
-        print(f'{error}, enter paraemters again')
-        print('...')
-
-# Compute returns
-#returns_df = functions.compute_returns(results_df)
+result_df = chosen_strat(df, ticker)
 
 # Backtest
-#backtest_df = functions.backtest(returns_df)
+try:
+    df, trades = functions.backtest(result_df, ticker)
+    print(trades)
+except ValueError as error:
+    for i in range(3):
+        print('...')
+    print(f'{error}, different DataFrame needed')
+    print('...')
+
 
 # Run a statistical simulation
 #sims.monte()
-result_df.to_csv(f"results.csv")
 
 # Closes script, allows graphs to stay open as script doesnt auto close
 functions.exit_script()
