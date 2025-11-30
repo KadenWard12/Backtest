@@ -36,6 +36,8 @@ def sma_cross(df, short_SMA, long_SMA):
             # Hold position
             df.loc[i, 'Signal'] = 0
     
+    strat_name = f'{short_SMA}_{long_SMA}_SMA_cross'
+    df.loc[0, 'name'] = strat_name
 
     # Run ATR
     functions.atr(df)
@@ -74,7 +76,7 @@ def sma_cross(df, short_SMA, long_SMA):
     plt.tight_layout() # Remove white space
     ax1.set_xlim(df['Date'].iloc[0], df['Date'].iloc[-1]) # Set graph to origin
     plt.subplots_adjust(hspace=0) # remove space inbetween ATR and main plot
-    plt.savefig(f'plots/{short_SMA}_{long_SMA}_SMA_cross.png', dpi=200)
+    plt.savefig(f'plots/{strat_name}.png', dpi=200)
     plt.close()
 
     return df

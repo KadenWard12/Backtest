@@ -9,6 +9,8 @@ import functions
 import strats
 import inspect
 import sys
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 
 df = pd.read_csv('results.csv')
 
@@ -58,7 +60,7 @@ def test(df):
 
     
     # Create empty trade df
-    trades = pd.DataFrame(columns=['Date', 'Time', 'Closed', 'Type', 'PnL', 'SL Hit','Cumalative PnL', 'W/L', 'Total PnL'])
+    trades = pd.DataFrame(columns=['Date', 'Time', 'Closed', 'Type', 'PnL', 'SL Hit', 'Cumulative PnL', 'Cumulative %', 'W/L', 'Total PnL'])
 
     dollar_pip = 0
     row_index = 0
@@ -164,12 +166,44 @@ def test(df):
                 first_candle = True
                 row_index += 1
 
-    # Last columns
-    trades.loc[0, 'Cumalative PnL'] = trades.loc[0, 'PnL']
+    # Cumulative PnL for equity curve
+    trades.loc[0, 'Cumulative PnL'] = trades.loc[0, 'PnL']
     for i in range(1, len(trades)):
-        trades.loc[i, 'Cumalative PnL'] = trades.loc[i-1, 'Cumalative PnL'] + trades.loc[i, 'PnL']
-    trades.loc[0, 'Total PnL'] = trades.iloc[-1]['Cumalative PnL']
-    trades.loc[0, 'W/L'] = (trades['PnL'] >= 0).sum() / len(trades)
+        trades.loc[i, 'Cumulative PnL'] = trades.loc[i-1, 'Cumulative PnL'] + trades.loc[i, 'PnL']
+    for i in range(len(trades)):
+        trades.loc[i, 'Cumulative %'] = (trades.loc[i, 'Cumulative PnL'] / balance) * 100
+
+    # Add new empty row at index=0 for equity curve
+    new_row = {col: 0 for col in trades.columns}   # keeps correct order
+    trades = pd.concat([pd.DataFrame([new_row]), trades], ignore_index=True)
+    trades['Cumulative %'] = pd.to_numeric(trades['Cumulative %'], errors='coerce')
+
+    # W/L and Total PnL and Cumulative %
+    trades.loc[0, 'Total PnL'] = trades.iloc[-1]['Cumulative PnL']
+    trades.loc[0, 'W/L'] = (trades['PnL'] > 0).sum() / (len(trades) - 1)
+
+    # Plot equity curve
+    plt.plot(trades.index, trades['Cumulative %'], label='Equity')
+    plt.legend()
+    plt.xlim(0, len(trades)-1)
+    # Zero line
+    plt.axhline(0, linestyle='--', alpha=0.5)
+    plt.xlabel('Trade number')
+    plt.ylabel('Equity / %')
+    plt.grid(True, linestyle='--', alpha = 0.3)
+    # Integer ticks 
+    plt.xticks(range(len(trades)))
+
+    # Shading below and above zero line
+    y = trades['Cumulative %']
+    x = trades.index
+    plt.fill_between(x, y, 0, where=(y >= 0), color='green', alpha=0.3)
+    plt.fill_between(x, y, 0, where=(y <= 0), color='red', alpha=0.3)
+
+
+    plt.tight_layout() # Remove white space
+    plt.savefig(f'plots/{df.loc[0, 'name']}_equity_curve.png', dpi=200)
+    plt.close()
 
     return df, trades
                 
