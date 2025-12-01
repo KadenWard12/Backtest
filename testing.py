@@ -12,3 +12,6 @@ import sys
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
+df = pd.read_csv('results.csv')
+trades = pd.read_csv('trades.csv')
+

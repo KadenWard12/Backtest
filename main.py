@@ -86,6 +86,9 @@ except ValueError as error:
     print(f'{error}, different DataFrame needed')
     print('...')
 
+df.to_csv('results.csv', index=False)
+trades.to_csv('trades.csv', index=False)
+
 # Run a statistical simulation
 simulations = inspect.getmembers(sims, inspect.isfunction)
 simulation_names = {name.lower(): func for name, func in simulations}

@@ -11,8 +11,6 @@ import matplotlib.dates as mdates
 import strats
 import sys
 
-
-
 # Download price data as .csv
 def download_data():
     while True:
@@ -93,7 +91,6 @@ def backtest(df, ticker):
         except ValueError:
             print('Invalid input, please enter a number') 
 
-    
     # Create empty trade df
     trades = pd.DataFrame(columns=['Date', 'Time', 'Closed', 'Type', 'PnL', 'PnL %', 'SL Hit', 'Cumulative PnL', 'Cumulative %', 'W/L', 'Total PnL', 'Total PnL %'])
 
