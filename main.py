@@ -109,11 +109,12 @@ while True:
 # Choose a simulation to test
 if sim_answer:
     # Check if simulations are available
-    if len(simulations) > 0:
-        print('Available simulations to use:')
-        for name, func in simulations:
-            print(name)  
+    if len(simulations) > 0: 
         while True:
+            print('...')
+            print('Available simulations to use:')
+            for name, func in simulations:
+                print(name) 
             sim = input('Choose a simulation: ').strip().lower()
             # Check if chosen sim matches available
             if sim in simulation_names:
@@ -121,14 +122,28 @@ if sim_answer:
                 for i in range(3):
                     print('...')
                 chosen_sim = simulation_names[sim]
-                break
+                # Run simulation
+                chosen_sim(df, trades, chosen_strat)
+                # Run another?
+                while True:
+                    y = input('Do you want to run another simulation [y/n]: ').strip().upper()
+                    if y in ('Y', 'YES'):
+                        exit_sim = False
+                        break
+                    elif y in ('N', 'NO'):
+                        exit_sim = True
+                        break
+                    else:
+                        print('Incorrect answer')
+                        continue
+                if exit_sim:
+                    break
             else:
                 print('Simulation not found, try again.')
     else:
         print('No simulations found.')
         sys.exit()
 
-    chosen_sim(df, trades, chosen_strat)
-
+    
 # Closes script
 functions.exit_script()

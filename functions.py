@@ -15,7 +15,7 @@ import sys
 def download_data():
     while True:
         ticker = input('Choose new ticker symbol: ').strip().upper()
-        df = yf.download(ticker, start="2023-01-01", end='2025-01-01')
+        df = yf.download(ticker, period='730d', interval='1h')
         if df.empty:
             print('No data found for that ticker')
             continue
@@ -29,10 +29,12 @@ def download_data():
             break
     return ticker
 
-# Remove weird first row 
+# Remove weird first row and change datetime to date
 def clean_csv(ticker):
     df = pd.read_csv(f'data/{ticker}.csv')
     df = df.drop(index=0).reset_index(drop=True)
+    if 'Datetime' in df.columns:
+        df = df.rename(columns={'Datetime': 'Date'})
     df.to_csv(f"data/{ticker}.csv", index=False)
 
 # Compute ATR
@@ -45,7 +47,7 @@ def atr(df, period=14):
     return df
 
 # Backtest for PnL, drawdown, equity curve, sharpe ratio etc
-def backtest(df, ticker):
+def backtest(df, ticker, not_sim=True):
     print('Backtesting...')
     for i in range(3):
         print('...')
@@ -92,7 +94,7 @@ def backtest(df, ticker):
             print('Invalid input, please enter a number') 
 
     # Create empty trade df
-    trades = pd.DataFrame(columns=['Date', 'Time', 'Closed', 'Type', 'PnL', 'PnL %', 'SL Hit', 'Cumulative PnL', 'Cumulative %', 'W/L', 'Total PnL', 'Total PnL %'])
+    trades = pd.DataFrame(columns=['Date', 'Closed', 'Type', 'PnL', 'PnL %', 'SL Hit', 'Cumulative PnL', 'Cumulative %', 'W/L %', 'Total PnL', 'Total PnL %'])
 
     dollar_pip = 0
     row_index = 0
@@ -214,30 +216,32 @@ def backtest(df, ticker):
     trades['PnL %'] = (trades['PnL'] / balance) * 100
     trades.loc[0, 'Total PnL'] = trades.iloc[-1]['Cumulative PnL']
     trades.loc[0, 'Total PnL %'] = (trades.loc[0, 'Total PnL'] / balance) * 100 
-    trades.loc[0, 'W/L'] = (trades['PnL'] > 0).sum() / (len(trades) - 1)
+    trades.loc[0, 'W/L %'] = ((trades['PnL'] > 0).sum() / (len(trades) - 1)) * 100
 
-    # Plot equity curve
-    plt.plot(trades.index, trades['Cumulative %'], label='Equity')
-    plt.legend()
-    plt.xlim(0, len(trades)-1)
-    # Zero line
-    plt.axhline(0, linestyle='--', alpha=0.5)
-    plt.title(f'{df.loc[0, 'title']} equity curve')
-    plt.xlabel('Trade number')
-    plt.ylabel('Equity / %')
-    plt.grid(True, linestyle='--', alpha = 0.3)
-    # Integer ticks 
-    plt.xticks(range(len(trades)))
+    if not_sim:
+        # Plot equity curve
+        plt.plot(trades.index, trades['Cumulative %'], label='Equity')
+        plt.legend()
+        plt.xlim(0, len(trades)-1)
+        # Zero line
+        plt.axhline(0, linestyle='--', alpha=0.5)
+        plt.title(f'{df.loc[0, 'title']} equity curve')
+        plt.xlabel('Trade number')
+        plt.ylabel('Equity / %')
+        plt.grid(True, linestyle='--', alpha = 0.3)
+        # Integer ticks 
+        plt.xticks(range(len(trades)))
+        plt.gca().xaxis.set_major_locator(plt.MaxNLocator(20))
 
-    # Shading below and above zero line
-    y = trades['Cumulative %']
-    x = trades.index
-    plt.fill_between(x, y, 0, where=(y >= 0), color='green', alpha=0.3, interpolate=True)
-    plt.fill_between(x, y, 0, where=(y <= 0), color='red', alpha=0.3, interpolate=True)
+        # Shading below and above zero line
+        y = trades['Cumulative %']
+        x = trades.index
+        plt.fill_between(x, y, 0, where=(y >= 0), color='green', alpha=0.3, interpolate=True)
+        plt.fill_between(x, y, 0, where=(y <= 0), color='red', alpha=0.3, interpolate=True)
 
-    plt.tight_layout() # Remove white space
-    plt.savefig(f'plots/{df.loc[0, 'name']}_equity_curve.png', dpi=200)
-    plt.close()
+        plt.tight_layout() # Remove white space
+        plt.savefig(f'plots/{df.loc[0, 'name']}_equity_curve.png', dpi=200)
+        plt.close()
 
     # Max drawdown
     equity = trades['Cumulative %'] + 100
