@@ -75,9 +75,45 @@ df = pd.read_csv(f'data/{ticker}.csv')
 # Run strategy
 result_df = chosen_strat(df, ticker)
 
+for i in range(3):
+    print('...')
+
+# Prompt starting balance
+while True:
+    try:    
+        balance = int(input('Input a starting balance: ').strip())
+        if balance > 0:
+            break
+        else:
+            print('Please enter integer greater than 0')
+    except ValueError:
+        print('Invalid input, please enter an integer')        
+
+# Prompt risk
+while True:
+    try:    
+        risk = float(input('Input risk %: ').strip())
+        if risk > 0 and risk <= 100:
+            break
+        else:
+            print('Please enter number greater than 0 and less than or equal to 100')
+    except ValueError:
+        print('Invalid input, please enter a number')
+
+# Prompt ATR multiplier    
+while True:
+    try:
+        multiplier = float(input('Input ATR multiplier: ').strip())
+        if multiplier > 0:
+            break
+        else:
+            print('Please enter number greater than 0')
+    except ValueError:
+        print('Invalid input, please enter a number') 
+
 # Backtest
 try:
-    df, trades = functions.backtest(result_df, ticker)
+    df, trades = functions.backtest(result_df, ticker, balance, risk, multiplier)
     print(trades)
     print('...')
 except ValueError as error:
@@ -85,7 +121,7 @@ except ValueError as error:
         print('...')
     print(f'{error}, different DataFrame needed')
     print('...')
-
+# DELETE THIS WHEN FINISHED TESTING!!!!!!!!!!!!!!!!!!!!!!!!!
 df.to_csv('results.csv', index=False)
 trades.to_csv('trades.csv', index=False)
 
@@ -123,7 +159,7 @@ if sim_answer:
                     print('...')
                 chosen_sim = simulation_names[sim]
                 # Run simulation
-                chosen_sim(df, trades, chosen_strat)
+                chosen_sim(df, trades, chosen_strat, balance, risk, multiplier)
                 # Run another?
                 while True:
                     y = input('Do you want to run another simulation [y/n]: ').strip().upper()

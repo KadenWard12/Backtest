@@ -47,7 +47,7 @@ def atr(df, period=14):
     return df
 
 # Backtest for PnL, drawdown, equity curve, sharpe ratio etc
-def backtest(df, ticker, not_sim=True):
+def backtest(df, ticker, balance, risk, multiplier, not_sim=True):
     print('Backtesting...')
     for i in range(3):
         print('...')
@@ -59,39 +59,6 @@ def backtest(df, ticker, not_sim=True):
     # Calculate ATR if not done already
     if 'ATR' not in df:
         atr(df)
-
-    # Prompt starting balance
-    while True:
-        try:    
-            balance = int(input('Input a starting balance: ').strip())
-            if balance > 0:
-                break
-            else:
-                print('Please enter integer greater than 0')
-        except ValueError:
-            print('Invalid input, please enter an integer')        
-
-    # Prompt risk
-    while True:
-        try:    
-            risk = float(input('Input risk %: ').strip())
-            if risk > 0 and risk <= 100:
-                break
-            else:
-                print('Please enter number greater than 0 and less than or equal to 100')
-        except ValueError:
-            print('Invalid input, please enter a number')
-    
-    # Prompt ATR multiplier    
-    while True:
-        try:
-            multiplier = float(input('Input ATR multiplier: ').strip())
-            if multiplier > 0:
-                break
-            else:
-                print('Please enter number greater than 0')
-        except ValueError:
-            print('Invalid input, please enter a number') 
 
     # Create empty trade df
     trades = pd.DataFrame(columns=['Date', 'Closed', 'Type', 'PnL', 'PnL %', 'SL Hit', 'Cumulative PnL', 'Cumulative %', 'W/L %', 'Total PnL', 'Total PnL %'])
@@ -200,6 +167,10 @@ def backtest(df, ticker, not_sim=True):
                 first_candle = True
                 row_index += 1
 
+    if trades.empty:
+        print('No trades occurred')
+        return df, trades
+
     # Cumulative PnL for equity curve
     trades.loc[0, 'Cumulative PnL'] = trades.loc[0, 'PnL']
     for i in range(1, len(trades)):
@@ -231,7 +202,7 @@ def backtest(df, ticker, not_sim=True):
         plt.grid(True, linestyle='--', alpha = 0.3)
         # Integer ticks 
         plt.xticks(range(len(trades)))
-        plt.gca().xaxis.set_major_locator(plt.MaxNLocator(20))
+        plt.gca().xaxis.set_major_locator(plt.MaxNLocator(nbins=20, integer=True))
 
         # Shading below and above zero line
         y = trades['Cumulative %']

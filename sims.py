@@ -11,13 +11,13 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import strats
 
-def grid_search(df, trades, chosen_strat):
+def grid_search(df, trades, chosen_strat, balance, risk, multiplier):
     # Check which strat has been chosen
     #if chosen_strat.__name__ == 'sma_cross':
 
     pass
 
-def monte_carlo_price_path(df, trades, chosen_strat):
+def monte_carlo_price_path(df, trades, chosen_strat, balance, risk, multiplier):
     # Check which strat has been chosen
     if chosen_strat.__name__ == 'sma_cross':
         print('SMA DETECTED')
