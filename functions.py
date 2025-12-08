@@ -48,10 +48,11 @@ def atr(df, period=14):
 
 # Backtest for PnL, drawdown, equity curve, sharpe ratio etc
 def backtest(df, ticker, balance, risk, multiplier, not_sim=True):
-    print('Backtesting...')
-    for i in range(3):
-        print('...')
-        
+    if not_sim:
+        print('Backtesting...')
+        for i in range(3):
+            print('...')
+            
     # Catch errors
     if 'Signal' not in df.columns:
         raise ValueError('Signal column not found in DataFrame')
@@ -185,34 +186,9 @@ def backtest(df, ticker, balance, risk, multiplier, not_sim=True):
 
     # W/L, PnL %, Total PnL, Total PnL %
     trades['PnL %'] = (trades['PnL'] / balance) * 100
-    trades.loc[0, 'Total PnL'] = trades.iloc[-1]['Cumulative PnL']
+    trades.loc[0, 'Total PnL'] = trades['Cumulative PnL'].dropna().iloc[-1]
     trades.loc[0, 'Total PnL %'] = (trades.loc[0, 'Total PnL'] / balance) * 100 
     trades.loc[0, 'W/L %'] = ((trades['PnL'] > 0).sum() / (len(trades) - 1)) * 100
-
-    if not_sim:
-        # Plot equity curve
-        plt.plot(trades.index, trades['Cumulative %'], label='Equity')
-        plt.legend()
-        plt.xlim(0, len(trades)-1)
-        # Zero line
-        plt.axhline(0, linestyle='--', alpha=0.5)
-        plt.title(f'{df.loc[0, 'title']} equity curve')
-        plt.xlabel('Trade number')
-        plt.ylabel('Equity / %')
-        plt.grid(True, linestyle='--', alpha = 0.3)
-        # Integer ticks 
-        plt.xticks(range(len(trades)))
-        plt.gca().xaxis.set_major_locator(plt.MaxNLocator(nbins=20, integer=True))
-
-        # Shading below and above zero line
-        y = trades['Cumulative %']
-        x = trades.index
-        plt.fill_between(x, y, 0, where=(y >= 0), color='green', alpha=0.3, interpolate=True)
-        plt.fill_between(x, y, 0, where=(y <= 0), color='red', alpha=0.3, interpolate=True)
-
-        plt.tight_layout() # Remove white space
-        plt.savefig(f'plots/{df.loc[0, 'name']}_equity_curve.png', dpi=200)
-        plt.close()
 
     # Max drawdown
     equity = trades['Cumulative %'] + 100
@@ -244,6 +220,38 @@ def backtest(df, ticker, balance, risk, multiplier, not_sim=True):
 
     annual_sharpe_ratio = sharpe_ratio * np.sqrt(trades_per_year)
     trades.loc[0, 'Annualised Sharpe Ratio'] = annual_sharpe_ratio
+
+    if not_sim:
+        # Plot equity curve
+        plt.plot(trades.index, trades['Cumulative %'], label='Equity')
+        plt.legend()
+        plt.xlim(0, len(trades)-1)
+        # Plot sharpe line
+        x = trades.index.values
+        y = trades['Cumulative %'].values
+        slope = np.sum(x * y) / np.sum(x**2)
+        trend_line = slope * x
+        plt.plot(x, trend_line, '--', color='red', label='Sharpe Line')
+        plt.legend()
+        # Zero line
+        plt.axhline(0, linestyle='-', alpha=0.3)
+        plt.title(f'{df.loc[0, 'title']} equity curve')
+        plt.xlabel('Trade number')
+        plt.ylabel('Equity / %')
+        plt.grid(True, linestyle='--', alpha = 0.3)
+        # Integer ticks 
+        plt.xticks(range(len(trades)))
+        plt.gca().xaxis.set_major_locator(plt.MaxNLocator(nbins=20, integer=True))
+
+        # Shading below and above zero line
+        y = trades['Cumulative %']
+        x = trades.index
+        plt.fill_between(x, y, 0, where=(y >= 0), color='green', alpha=0.3, interpolate=True)
+        plt.fill_between(x, y, 0, where=(y <= 0), color='red', alpha=0.3, interpolate=True)
+
+        plt.tight_layout() # Remove white space
+        plt.savefig(f'plots/{df.loc[0, 'name']}_equity_curve.png', dpi=200)
+        plt.close()
     
     return df, trades
     

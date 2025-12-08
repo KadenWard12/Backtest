@@ -10,6 +10,7 @@ import strats
 import inspect
 import sys
 import sims
+from tqdm import tqdm
 
 # List all .csv files
 files = [f for f in os.listdir('data') if f.endswith('.csv')]
@@ -121,9 +122,6 @@ except ValueError as error:
         print('...')
     print(f'{error}, different DataFrame needed')
     print('...')
-# DELETE THIS WHEN FINISHED TESTING!!!!!!!!!!!!!!!!!!!!!!!!!
-df.to_csv('results.csv', index=False)
-trades.to_csv('trades.csv', index=False)
 
 # Run a statistical simulation
 simulations = inspect.getmembers(sims, inspect.isfunction)
@@ -159,7 +157,7 @@ if sim_answer:
                     print('...')
                 chosen_sim = simulation_names[sim]
                 # Run simulation
-                chosen_sim(df, trades, chosen_strat, balance, risk, multiplier)
+                chosen_sim(df, trades, chosen_strat, balance, risk, multiplier, ticker)
                 # Run another?
                 while True:
                     y = input('Do you want to run another simulation [y/n]: ').strip().upper()
