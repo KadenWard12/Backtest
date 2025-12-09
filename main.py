@@ -178,6 +178,9 @@ if sim_answer:
         print('No simulations found.')
         sys.exit()
 
+#FOR TESTING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+print(trades[['Date', 'Closed', 'Return']])
+trades.to_csv(f"trades.csv", index=False)
     
 # Closes script
 functions.exit_script()

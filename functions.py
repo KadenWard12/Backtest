@@ -62,13 +62,14 @@ def backtest(df, ticker, balance, risk, multiplier, not_sim=True):
         atr(df)
 
     # Create empty trade df
-    trades = pd.DataFrame(columns=['Date', 'Closed', 'Type', 'PnL', 'PnL %', 'SL Hit', 'Cumulative PnL', 'Cumulative %', 'W/L %', 'Total PnL', 'Total PnL %'])
+    trades = pd.DataFrame(columns=['Date', 'Closed', 'Type', 'PnL', 'PnL %', 'SL Hit', 'Return', 'Cumulative PnL', 'Cumulative %', 'W/L %', 'Total PnL', 'Total PnL %'])
 
     dollar_pip = 0
     row_index = 0
     first_candle = True
     buy = False
     sell = False
+    equity = balance
     # Loop through each row of the dataframe
     for i in range(1, len(df)):
         # Set the distance moved by each candle
@@ -85,13 +86,16 @@ def backtest(df, ticker, balance, risk, multiplier, not_sim=True):
                 trades.loc[row_index, 'Closed'] = df.loc[i, 'Date']
                 # Stoploss not hit
                 trades.loc[row_index, 'SL Hit'] = False
+                # Set return (pnl/current equity)
+                trades.loc[row_index, 'Return'] = trades.loc[row_index, 'PnL'] / equity
                 # Reset trade
                 first_candle = True
+                equity += trades.loc[row_index, 'PnL']
                 row_index += 1
             # Variables
             pips = df.loc[i, 'ATR'] * multiplier
             stop = df.loc[i, 'Close'] - pips
-            dollar_pip = (balance * (risk/100)) / pips
+            dollar_pip = (equity * (risk/100)) / pips
             # Append to trades dataframe
             if 'Date' in df.columns:
                 trades.loc[row_index, 'Date'] = df.loc[i, 'Date']
@@ -112,13 +116,16 @@ def backtest(df, ticker, balance, risk, multiplier, not_sim=True):
                 trades.loc[row_index, 'Closed'] = df.loc[i, 'Date']
                 # Stoploss not hit
                 trades.loc[row_index, 'SL Hit'] = False
+                # Set return (pnl/current equity)
+                trades.loc[row_index, 'Return'] = trades.loc[row_index, 'PnL'] / equity
                 # Reset trade
                 first_candle = True
+                equity += trades.loc[row_index, 'PnL']
                 row_index += 1
             # Variables
             pips = df.loc[i, 'ATR'] * multiplier
             stop = df.loc[i, 'Close'] + pips
-            dollar_pip = (balance * (risk/100)) / pips
+            dollar_pip = (equity * (risk/100)) / pips
             # Append to trades dataframe
             if 'Date' in df.columns:
                 trades.loc[row_index, 'Date'] = df.loc[i, 'Date']
@@ -152,9 +159,12 @@ def backtest(df, ticker, balance, risk, multiplier, not_sim=True):
                 trades.loc[row_index, 'Closed'] = df.loc[i, 'Date']
                 # Stoploss not hit
                 trades.loc[row_index, 'SL Hit'] = True
+                # Set return (pnl/current equity)
+                trades.loc[row_index, 'Return'] = trades.loc[row_index, 'PnL'] / equity
                 # Reset trade
                 buy = False
                 first_candle = True
+                equity += trades.loc[row_index, 'PnL']
                 row_index += 1
         if sell:
             if df.loc[i, 'High'] >= stop:
@@ -163,9 +173,12 @@ def backtest(df, ticker, balance, risk, multiplier, not_sim=True):
                 trades.loc[row_index, 'Closed'] = df.loc[i, 'Date']
                 # Stoploss not hit
                 trades.loc[row_index, 'SL Hit'] = True
+                # Set return (pnl/current equity)
+                trades.loc[row_index, 'Return'] = trades.loc[row_index, 'PnL'] / equity
                 # Reset trade
                 sell = False
                 first_candle = True
+                equity += trades.loc[row_index, 'PnL']
                 row_index += 1
 
     if trades.empty:
@@ -197,15 +210,15 @@ def backtest(df, ticker, balance, risk, multiplier, not_sim=True):
     trades.loc[0, 'Max Drawdown %'] = drawdown.min()
         
     # Sharpe ratio annualised
-    sharpe_pnl = trades.iloc[1:]['PnL %'] / 100
-    mean_pnl = sharpe_pnl.mean()
-    std_pnl = sharpe_pnl.std()
+    sharpe_return = trades.iloc[1:]['Return'] 
+    mean_return = sharpe_return.mean()
+    std_return = sharpe_return.std()
 
     # Avoids dividing by 0 error
-    if std_pnl == 0:
+    if std_return == 0:
         sharpe_ratio = 0
     else:
-        sharpe_ratio = mean_pnl / std_pnl
+        sharpe_ratio = mean_return / std_return
 
     # Annualisation
     df['Date'] = pd.to_datetime(df['Date'])
@@ -252,7 +265,7 @@ def backtest(df, ticker, balance, risk, multiplier, not_sim=True):
         plt.tight_layout() # Remove white space
         plt.savefig(f'plots/{df.loc[0, 'name']}_equity_curve.png', dpi=200)
         plt.close()
-    
+
     return df, trades
     
 def exit_script():
