@@ -3,7 +3,6 @@ warnings.filterwarnings("ignore", category=UserWarning, module="numpy")
 
 import pandas as pd
 import numpy as np
-import os
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -98,5 +97,7 @@ def sma_cross(df, ticker, not_sim=True, long_SMA=None, short_SMA=None):
         plt.subplots_adjust(hspace=0) # remove space inbetween ATR and main plot
         plt.savefig(f'plots/{strat_name}.png', dpi=200)
         plt.close()
+
+        functions.open_graph(f'plots/{strat_name}.png')
 
     return df

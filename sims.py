@@ -3,8 +3,6 @@ warnings.filterwarnings("ignore", category=UserWarning, module="numpy")
 
 import pandas as pd
 import numpy as np
-import os
-import yfinance as yf
 import matplotlib
 matplotlib.use('Agg')  # use this to plot graph as a popup
 import matplotlib.pyplot as plt
@@ -67,7 +65,7 @@ def grid_search(df, trades, chosen_strat, balance, risk, multiplier, ticker, df_
         
         # Equity plot
         plt.title(f'{ticker} SMA Grid Search Equity Results')
-        plt.ylabel('Final Equity %')
+        plt.ylabel('Final Equity Gain / %')
         plt.xlabel('Short SMA')
         plt.grid(True, linestyle='--', alpha=0.4)
         plt.legend(fontsize=6, markerscale=0.8, handlelength=1.2)
@@ -76,6 +74,8 @@ def grid_search(df, trades, chosen_strat, balance, risk, multiplier, ticker, df_
         
         plt.savefig(f'plots/{ticker}_grid_search_equity.png', dpi=200)
         plt.close()
+
+        functions.open_graph(f'plots/{ticker}_grid_search_equity.png')
 
         # Print top 10 equity returns
         top_values = []
@@ -170,13 +170,15 @@ def monte_carlo_bootstrap(df, trades, chosen_strat, balance, risk, multiplier, t
 
         plt.title(f'{ticker} {chosen_strat.__name__} Monte Carlo Simulated Equity Curves')
         plt.xlabel('Trade Number')
-        plt.ylabel('Equity %')
+        plt.ylabel('Equity Gain / %')
         plt.grid(True, linestyle='--', alpha=0.3)
         plt.axhline(0, linestyle='-', color='black', linewidth=0.5)
         plt.tight_layout()
 
         plt.savefig(f'plots/{ticker} Monte Carlo for {chosen_strat.__name__}', dpi=200)
         plt.close()
+
+        functions.open_graph(f'plots/{ticker} Monte Carlo for {chosen_strat.__name__}')
 
         # Summary table
         def compute_max_drawdown(equity_curve):

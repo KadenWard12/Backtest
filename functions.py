@@ -10,6 +10,31 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import strats
 import sys
+import subprocess
+
+# Check if running in vscode to open graphs in new tab
+def open_graph(filepath):
+    def running_in_vscode():
+        return os.environ.get('TERM_PROGRAM', '').lower() == 'vscode'
+
+    if not running_in_vscode():
+        return
+    
+    try:
+        # Check if 'code' command exists
+        check = subprocess.call(
+            ['which', 'code'],
+            # Silence both standard outputs and standard errors
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
+        if check != 0:
+            return
+        # Open file in new tab
+        subprocess.Popen(['code', '-g', filepath])
+    except error:
+        # If any errors, pass the function
+        pass
 
 # Download price data as .csv
 def download_data():
@@ -250,7 +275,7 @@ def backtest(df, ticker, balance, risk, multiplier, not_sim=True):
         plt.axhline(0, linestyle='-', alpha=0.3)
         plt.title(f'{df.loc[0, 'title']} equity curve')
         plt.xlabel('Trade number')
-        plt.ylabel('Equity / %')
+        plt.ylabel('Equity Gain / %')
         plt.grid(True, linestyle='--', alpha = 0.3)
         # Integer ticks 
         plt.xticks(range(len(trades)))
@@ -265,6 +290,8 @@ def backtest(df, ticker, balance, risk, multiplier, not_sim=True):
         plt.tight_layout() # Remove white space
         plt.savefig(f'plots/{df.loc[0, 'name']}_equity_curve.png', dpi=200)
         plt.close()
+
+        open_graph(f'plots/{df.loc[0, 'name']}_equity_curve.png')
 
     return df, trades
     
