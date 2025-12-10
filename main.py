@@ -72,6 +72,7 @@ else:
     sys.exit()
     
 df = pd.read_csv(f'data/{ticker}.csv')
+df_copy = df
 
 # Run strategy
 result_df = chosen_strat(df, ticker)
@@ -114,7 +115,7 @@ while True:
 
 # Backtest
 try:
-    df, trades = functions.backtest(result_df, ticker, balance, risk, multiplier)
+    result_df, trades = functions.backtest(result_df, ticker, balance, risk, multiplier)
     print(trades)
     print('...')
 except ValueError as error:
@@ -149,6 +150,7 @@ if sim_answer:
             print('Available simulations to use:')
             for name, func in simulations:
                 print(name) 
+            print()
             sim = input('Choose a simulation: ').strip().lower()
             # Check if chosen sim matches available
             if sim in simulation_names:
@@ -157,7 +159,7 @@ if sim_answer:
                     print('...')
                 chosen_sim = simulation_names[sim]
                 # Run simulation
-                chosen_sim(df, trades, chosen_strat, balance, risk, multiplier, ticker)
+                chosen_sim(result_df, trades, chosen_strat, balance, risk, multiplier, ticker, df_copy)
                 # Run another?
                 while True:
                     y = input('Do you want to run another simulation [y/n]: ').strip().upper()

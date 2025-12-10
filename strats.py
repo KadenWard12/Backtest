@@ -32,6 +32,7 @@ def sma_cross(df, ticker, not_sim=True, long_SMA=None, short_SMA=None):
                 print("Please enter integers greater than 0")
                 continue
             if short_SMA >= long_SMA:
+                print()
                 print("Long SMA must be greater than Short SMA")
                 continue
             break
