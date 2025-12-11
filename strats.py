@@ -8,6 +8,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import functions
+from tqdm import tqdm
 
 """ Make sure every strat includes:
 - strat_name (for file names will use '_' for spaces)
@@ -41,16 +42,31 @@ def sma_cross(df, ticker, not_sim=True, long_SMA=None, short_SMA=None):
     df['Long'] = df['Close'].rolling(window=long_SMA).mean() 
     df.loc[0, 'Signal'] = 0 # hold position
 
-    for i in range(1, len(df)):
-        if (df.loc[i-1, 'Short'] < df.loc[i-1, 'Long']) and (df.loc[i, 'Short'] > df.loc[i, 'Long']):
-            # Buy
-            df.loc[i, 'Signal'] = 1
-        elif (df.loc[i-1, 'Short'] > df.loc[i-1, 'Long']) and (df.loc[i, 'Short'] < df.loc[i, 'Long']):
-            # Sell
-            df.loc[i, 'Signal'] = -1
-        else:
-            # Hold position
-            df.loc[i, 'Signal'] = 0
+    if not_sim:
+        print()
+        print('Analysing...')
+        for i in tqdm(range(1, len(df))):
+            if (df.loc[i-1, 'Short'] < df.loc[i-1, 'Long']) and (df.loc[i, 'Short'] > df.loc[i, 'Long']):
+                # Buy
+                df.loc[i, 'Signal'] = 1
+            elif (df.loc[i-1, 'Short'] > df.loc[i-1, 'Long']) and (df.loc[i, 'Short'] < df.loc[i, 'Long']):
+                # Sell
+                df.loc[i, 'Signal'] = -1
+            else:
+                # Hold position
+                df.loc[i, 'Signal'] = 0
+
+    if not not_sim:
+        for i in range(1, len(df)):
+            if (df.loc[i-1, 'Short'] < df.loc[i-1, 'Long']) and (df.loc[i, 'Short'] > df.loc[i, 'Long']):
+                # Buy
+                df.loc[i, 'Signal'] = 1
+            elif (df.loc[i-1, 'Short'] > df.loc[i-1, 'Long']) and (df.loc[i, 'Short'] < df.loc[i, 'Long']):
+                # Sell
+                df.loc[i, 'Signal'] = -1
+            else:
+                # Hold position
+                df.loc[i, 'Signal'] = 0
     
     strat_name = f'{ticker}_{short_SMA}_{long_SMA}_SMA_cross'
     df.loc[0, 'name'] = strat_name

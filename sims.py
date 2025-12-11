@@ -178,7 +178,7 @@ def monte_carlo_bootstrap(df, trades, chosen_strat, balance, risk, multiplier, t
         plt.savefig(f'plots/{ticker} Monte Carlo for {chosen_strat.__name__}', dpi=200)
         plt.close()
 
-        functions.open_graph(f'plots/{ticker} Monte Carlo for {chosen_strat.__name__}')
+        functions.open_graph(f'plots/{ticker} Monte Carlo for {chosen_strat.__name__}.png')
 
         # Summary table
         def compute_max_drawdown(equity_curve):
