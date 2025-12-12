@@ -1,17 +1,31 @@
 ## Backtesting Engine for Trading Strategies
 
-files include:
-- data folder holds all downloaded .csv data for relevent ticker symbols
-- plots folder holds all plotted data
-- venv folder holds virtual environment information in order to run the engine
-- run main.py to execute programme
-- functions.py contains all supporting functions 
-- sims.py contains statistical simulations such as grid search and monte carlo bootstrapped returns
-- strats.py contains trading strategies to backtest
-- testing.py, empty folder to test new additions
-  
-Intructions (Linux environment):
-- open virtual environment with 'source venv/bin/activate' 
+Description:
+
+A modular Python backtesting engine designed for evaluating trading strategies using historical market data.
+
+This engine supports multiple strategies and statistical simulations, of which currently include a SMA crossover strategy, grid search, and Monte Carlo bootstrapped returns simulations. Each run produces performance statistics and relevant plots, which can be seen below in the example outputs. Due to the dynamic structure, new strategies and simulations can easily be developed and appended to the engine.
+
+
+Folder layout:
+```
+.
+├── README.md
+├── data/            # downloaded .csv data for relevent ticker symbols
+├── functions.py     # helper functions
+├── main.py          # main script, run to execute engine
+├── plots/           # plotted data 
+├── requirements.txt # virtual environment dependencies
+├── sims.py          # statistical simulations 
+├── strats.py        # trading strategies to backtest
+└── testing.py       # empty folder to test new additions
+```
+
+Usage (Linux environment):
+- create and run a virtual environment:
+  - create with 'python3 -m venv venv'
+  - activate with 'source venv/bin/activate'
+  - install dependencies with 'pip install -r requirements.txt'
 - run main script with 'python3 main.py'
 - either choose predownloaded data or retrieve new based on yahoo finance ticker symbols (**_currently downloads two years of hourly data_**)
 - input desired strategy to backtest
